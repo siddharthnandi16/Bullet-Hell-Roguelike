@@ -1,0 +1,48 @@
+[
+  {
+    "name": "debug",
+    "class": "PLAYER_DEBUG",
+    "vx": 2, "vy": 2,
+    "lives": 8,
+    "hasLasers": true, "hasBombs": true,
+    "fire_rate": 20,
+    "symbol": "@",
+    "weapon": "autopistol",
+    "inventory": ["autopistol", "machinegun", "laserrifle", "bomblauncher",
+                  "plasmarifle", "missilelauncher", "Plasma_Storm",
+                  "Grand_Cannon", "Minigun"]
+  },
+  {
+    "name": "fighter_jet",
+    "class": "PLAYER_FIGHTER",
+    "vx": 3, "vy": 3,
+    "lives": 8,
+    "hasLasers": true, "hasBombs": true,
+    "fire_rate": 20,
+    "symbol": "@",
+    "weapon": "machinegun",
+    "inventory": ["machinegun", "laserrifle", "shotgun"]
+  },
+  {
+    "name": "flying_fortress",
+    "class": "PLAYER_FORTRESS",
+    "vx": 1, "vy": 1,
+    "lives": 8,
+    "hasLasers": true, "hasBombs": true,
+    "fire_rate": 20,
+    "symbol": "@",
+    "weapon": "bomblauncher",
+    "inventory": ["bomblauncher", "machinegun", "missilelauncher"]
+  },
+  {
+    "name": "experimental_fighter",
+    "class": "PLAYER_EXPERIMENTAL",
+    "vx": 2, "vy": 2,
+    "lives": 8,
+    "hasLasers": true, "hasBombs": true,
+    "fire_rate": 20,
+    "symbol": "@",
+    "weapon": "plasmacannon",
+    "inventory": ["plasmacannon", "spiral_cannon"]
+  }
+]

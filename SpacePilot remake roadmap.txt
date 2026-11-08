@@ -1,0 +1,8 @@
+1. Extra features added compared to base game
+a. JSON editable for both enemies,levels and weapons with recompilation. This will use a python script to generate a .json file from a spreadsheet containing all game-data. The .json file will then be parsed by a cJson parser during runtime, so that the game can be modified easily without needing recompilation.
+b. Graphics update: ASCII graphics will be replaced with simple 2D pixel art.
+c. Background update: New static backgrounds will be added.
+d. Level update: Level design will be altered dramatically, using inspiration from other bullet hell games like Touhou.
+e. Enemy weapon rework: Enemy struct will be reworked into a C++ class that lets it have multiple weapons at once.
+f. Bullet spawning functions, pattern generators: New functions will be added to spawn projectiles in a pre-defined
+pattern.(used for boss or specific enemy special attacks).
