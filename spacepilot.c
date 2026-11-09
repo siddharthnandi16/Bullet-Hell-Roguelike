@@ -28,6 +28,7 @@ Planned additional features: Music, Power-Ups, unlockable upgrades, screen-clear
 #include "miniaudio.h"
 #include "highscores.h"
 #include "parser.h"
+#include "patterns.h"
 int game_over =0; //1= true, 0=false
 //Function to load data from JSON files
 void LoadData(){
@@ -40,7 +41,7 @@ void LoadData(){
     PlayerFromDef(&flying_fortress,      &player_defs[2]);
     PlayerFromDef(&experimental_fighter, &player_defs[3]);
     PlayerFromDef(&player_backup,        &player_defs[0]);
-    
+
     
 }
 //This function sets the player's current movement speed to their top speed
@@ -138,6 +139,10 @@ int gameloop(Player *player, int max_x, int max_y, GameMode game_mode){
     move_projectiles(projectiles, max_x, max_y);
     move_enemy(enemies, player, max_x, max_y);
     fire_enemies(enemies, player);
+    for (int i = 0; i < MAX_PATTERNS; i++) {
+    if (!instances[i].active) continue;
+    update_pattern_instance(&instances[i]);
+}
     render_enemies(enemies);
     render_projectiles(projectiles);
     switch(game_mode) {

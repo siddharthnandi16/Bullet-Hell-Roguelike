@@ -233,7 +233,7 @@ void fire_weapon(const WeaponType *weapon, float px, float py, float angle, bool
         slot += i;
 
         Projectile *p = &projectiles[slot];
-        p->state     = REGULAR;
+        p->state     = NORMAL;
         p->px        = px;
         p->py        = py;
         p->angle     = angle + (i * weapon->offset_angle * reverse_angle);
@@ -373,119 +373,139 @@ else if (player_owned == FALSE){projectiles[slot + i].player_owned = FALSE;
 */
 
 // Function that moves and updates projectiles
-void move_projectiles(Projectile *projectiles, int max_x, int max_y){
-    for(int i = 0; i < MAX_PROJECTILES; i++){
+//Compare projectile name to a bullet name
+static bool is_type(const Projectile *p, const char *name)
+{
+    return strcmp(p->name, name) == 0;
+}
+
+void move_projectiles(Projectile *projectiles, int max_x, int max_y)
+{
+    /* Looked up once, the first time a bomb explodes */
+    static int shrapnel_index = -1;
+
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectiles[i].old_px = projectiles[i].px;
         projectiles[i].old_py = projectiles[i].py;
-        projectiles[i].age++; //Updates projectile age per tick
-        if (projectiles[i].pierce <= 0) {
-projectiles[i].state = SPENT;
-}
-if (projectiles[i].type == LASER) {
-    if (projectiles[i].age >= LASER_DURATION_FRAMES) {
-        projectiles[i].state = SPENT;
-    }
-    continue; // Skips normal movement
-}
-if(projectiles[i].type == BOMB && projectiles[i].age >= 15){
-    projectiles[i].state = EXPLODING;
-}
-if (projectiles[i].state == EXPLODING){
-    projectiles[i].state = SPENT;  
-    int offset_angle = 90;
-    for (int j= 0; j < 12; j++){
-int slot_1 = findfreeprojectileslot();
-//Debug code for checking if projectile slot finding function is working properly
-//fprintf(stderr, "j=%d: got slot %d, its current state=%d\n", j, slot_1, projectiles[slot_1].state);
-if (slot_1 == -1){
-    offset_angle = offset_angle + 30;
-    continue; //Skips execution if there are no free projectile slots
-}
-projectiles[slot_1].state = NORMAL;
-//Debug code to check if slot is being set properly
-//fprintf(stderr, "Set slot %d to NORMAL\n", slot_1);
-projectiles[slot_1].player_owned = projectiles[i].player_owned;
-projectiles[slot_1].px = projectiles[i].px ;
-projectiles[slot_1].py = projectiles[i].py ;
-projectiles[slot_1].type = BULLET;
-projectiles[slot_1].angle = offset_angle;
-projectiles[slot_1].symbol = '+';
-projectiles[slot_1].pierce = 1;
-projectiles[slot_1].strafe = 0;
-projectiles[slot_1].turn_rate = 0;
-projectiles[slot_1].dx = 0;
-projectiles[slot_1].dy = -1; //Moves directly upward
-projectiles[slot_1].damage = 1;
-projectiles[slot_1].color = projectiles[i].color;
-offset_angle = offset_angle + 30;
-//Debug code for checking number of projectiles spawned
-//fprintf(stderr, "Created shrapnel: slot %d, angle %d, initial dx=%.2f dy=%.2f\n", 
-//       slot_1, offset_angle, projectiles[slot_1].dx, projectiles[slot_1].dy);
-    }
-    //Debug code for checking state of first three slots in pool
-      //  fprintf(stderr, "After explosion: slot 0 state=%d, slot 1 state=%d, slot 2 state=%d\n", 
-      //  projectiles[0].state, projectiles[1].state, projectiles[2].state);
-}
-//Skips check for projectiles that are inactive
-if (projectiles[i].state != NORMAL) {
-            continue;
-        }
-// Skip standard straight-line movement for special-case types (deferred)
-if (projectiles[i].type == CHAINLIGHTNING || projectiles[i].type == EMP) {
-continue; // TODO: special handling later
-        }
-if (projectiles[i].angle != 90) {
-            float rad = projectiles[i].angle * (M_PI / 180.0f); // convert degrees to radians - confirm your angle units
-            float speed = sqrtf(projectiles[i].dx * projectiles[i].dx +
-                                 projectiles[i].dy * projectiles[i].dy); // derive speed from the default dx/dy magnitude - or pull from WeaponType if you add that field
-            projectiles[i].dx = speed * cosf(rad);
-            projectiles[i].dy = -speed * sinf(rad); // negative since up = decreasing py
-        }
-      if (projectiles[i].type == MISSILE && projectiles[i].turn_rate > 0) {
-    float target_x, target_y;
-    bool has_target = false;
+        projectiles[i].age++;
 
-    if (projectiles[i].player_owned) {
-        // Player-owned missiles home in on the nearest living enemy
-        float best_dist_sq = -1.0f;
-        for (int e = 0; e < MAX_ENEMIES; e++) {
-            if (enemies[e].state == ALIVE) {
-                float dx = enemies[e].px - projectiles[i].px;
-                float dy = enemies[e].py - projectiles[i].py;
-                float dist_sq = dx * dx + dy * dy;
-                if (best_dist_sq < 0 || dist_sq < best_dist_sq) {
-                    best_dist_sq = dist_sq;
-                    target_x = enemies[e].px;
-                    target_y = enemies[e].py;
-                    has_target = true;
+        if (projectiles[i].pierce <= 0) {
+            projectiles[i].state = SPENT;
+        }
+
+        if (is_type(&projectiles[i], "LASER")) {
+            if (projectiles[i].age >= LASER_DURATION_FRAMES) {
+                projectiles[i].state = SPENT;
+            }
+            continue; /* Skips normal movement */
+        }
+
+        if (is_type(&projectiles[i], "BOMB") && projectiles[i].age >= 15) {
+            projectiles[i].state = EXPLODING;
+        }
+
+        if (projectiles[i].state == EXPLODING) {
+            projectiles[i].state = SPENT;
+
+            if (shrapnel_index < 0) {
+                shrapnel_index = find_bullet_index("BULLET");
+            }
+            if (shrapnel_index < 0) continue; /* No BULLET entry loaded */
+
+            const BulletType *bt = &bullets[shrapnel_index];
+            int offset_angle = 90;
+
+            for (int j = 0; j < 12; j++) {
+                int slot_1 = findfreeprojectileslot();
+                if (slot_1 == -1) {
+                    offset_angle += 30;
+                    continue; /* No free projectile slots */
                 }
+
+                Projectile *s = &projectiles[slot_1];
+                s->state      = NORMAL;
+                s->player_owned = projectiles[i].player_owned;
+                s->color      = projectiles[i].color;
+                s->px         = projectiles[i].px;
+                s->py         = projectiles[i].py;
+                s->angle      = offset_angle;
+                s->age        = 0;
+                s->width      = bt->width;
+                s->height     = bt->height;
+                s->symbol     = bt->symbol;
+                s->pierce     = bt->pierce;
+                s->strafe     = bt->strafe;
+                s->turn_rate  = bt->turn_rate;
+                s->dx         = bt->dx;
+                s->dy         = bt->dy;
+                s->damage     = bt->damage;
+                s->special    = bt->special;
+                strncpy(s->name, bt->name, sizeof(s->name) - 1);
+                s->name[sizeof(s->name) - 1] = '\0';
+
+                offset_angle += 30;
             }
         }
-    } else {
-        // Enemy-owned missiles home in on the player
-        target_x = player.px;
-        target_y = player.py;
-        has_target = true;
-    }
 
-    if (has_target) {
-        float target_angle_rad = atan2f(-(target_y - projectiles[i].py),
-                                          (target_x - projectiles[i].px));
-        float current_angle_rad = projectiles[i].angle * (M_PI / 180.0f);
+        /* Skips check for projectiles that are inactive */
+        if (projectiles[i].state != NORMAL) {
+            continue;
+        }
 
-        float diff = target_angle_rad - current_angle_rad;
-        while (diff > M_PI)  diff -= 2.0f * M_PI;
-        while (diff < -M_PI) diff += 2.0f * M_PI;
+        /* Special-case types, deferred */
+        if (is_type(&projectiles[i], "CHAINLIGHTNING") || is_type(&projectiles[i], "EMP")) {
+            continue; /* TODO: special handling later */
+        }
 
-        float turn_rate_rad = projectiles[i].turn_rate * (M_PI / 180.0f);
-        if (diff > turn_rate_rad)  diff = turn_rate_rad;
-        if (diff < -turn_rate_rad) diff = -turn_rate_rad;
+        if (projectiles[i].angle != 90) {
+            float rad = projectiles[i].angle * (M_PI / 180.0f);
+            float speed = sqrtf(projectiles[i].dx * projectiles[i].dx +
+                                projectiles[i].dy * projectiles[i].dy);
+            projectiles[i].dx = speed * cosf(rad);
+            projectiles[i].dy = -speed * sinf(rad); /* Up = decreasing py */
+        }
 
-        float new_angle_rad = current_angle_rad + diff;
-        projectiles[i].angle = new_angle_rad * (180.0f / M_PI);
-    }
-    // if no target found, missile continues straight at its current angle
-}
+        if (is_type(&projectiles[i], "MISSILE") && projectiles[i].turn_rate > 0) {
+            float target_x = 0, target_y = 0;
+            bool has_target = false;
+
+            if (projectiles[i].player_owned) {
+                float best_dist_sq = -1.0f;
+                for (int e = 0; e < MAX_ENEMIES; e++) {
+                    if (enemies[e].state == ALIVE) {
+                        float dx = enemies[e].px - projectiles[i].px;
+                        float dy = enemies[e].py - projectiles[i].py;
+                        float dist_sq = dx * dx + dy * dy;
+                        if (best_dist_sq < 0 || dist_sq < best_dist_sq) {
+                            best_dist_sq = dist_sq;
+                            target_x = enemies[e].px;
+                            target_y = enemies[e].py;
+                            has_target = true;
+                        }
+                    }
+                }
+            } else {
+                target_x = player.px;
+                target_y = player.py;
+                has_target = true;
+            }
+
+            if (has_target) {
+                float target_angle_rad = atan2f(-(target_y - projectiles[i].py),
+                                                (target_x - projectiles[i].px));
+                float current_angle_rad = projectiles[i].angle * (M_PI / 180.0f);
+
+                float diff = target_angle_rad - current_angle_rad;
+                while (diff > M_PI)  diff -= 2.0f * M_PI;
+                while (diff < -M_PI) diff += 2.0f * M_PI;
+
+                float turn_rate_rad = projectiles[i].turn_rate * (M_PI / 180.0f);
+                if (diff > turn_rate_rad)  diff = turn_rate_rad;
+                if (diff < -turn_rate_rad) diff = -turn_rate_rad;
+
+                projectiles[i].angle = (current_angle_rad + diff) * (180.0f / M_PI);
+            }
+        }
 
         projectiles[i].px += projectiles[i].dx;
         projectiles[i].py += projectiles[i].dy;
@@ -496,56 +516,69 @@ if (projectiles[i].angle != 90) {
     }
 }
 //Function that calculates the bounds for laser-type projectiles
- float start_row =0 ,end_row = 0;
 void get_laser_bounds(Projectile *proj, int max_y, int max_x, float *start_row, float *end_row){
-    getmaxyx (stdscr, max_y, max_x);
-if (proj->player_owned == TRUE){
-    *start_row = (int)proj->py;
-    *end_row = 0;
+    getmaxyx(stdscr, max_y, max_x);
+    if (proj->player_owned == TRUE){
+        *start_row = (int)proj->py;
+        *end_row = 0;
     }
-else {
-    *start_row = (int)proj->py;
-    *end_row = PLAYFIELD_H -1;
+    else {
+        *start_row = (int)proj->py;
+        *end_row = PLAYFIELD_H - 1;
+    }
+    if (*start_row > *end_row) {
+        float temp = *start_row;
+        *start_row = *end_row;
+        *end_row = temp;
+    }
 }
-if (*start_row > *end_row) {
-    int temp = *start_row;
-    *start_row = *end_row;
-    *end_row = temp;
-}
-}
+
 //Function that renders projectiles each frame
 void render_projectiles(Projectile *projectiles, int max_x, int max_y){
-for(int i=0; i < MAX_PROJECTILES; i++){
-    if (projectiles[i].state == NORMAL && projectiles[i].type != LASER){
-    attron(COLOR_PAIR(projectiles[i].color));
-     mvaddch(offset_y + projectiles[i].py, offset_x + projectiles[i].px, projectiles[i].symbol);
-     attroff(COLOR_PAIR(projectiles[i].color));
-     wnoutrefresh(stdscr);
-    }
-    if (projectiles[i].state == NORMAL && projectiles[i].type == LASER){
-get_laser_bounds(&projectiles[i], max_y, max_x, &start_row, &end_row);
-for (int p = start_row; p <= end_row; p++) {
-      attron(COLOR_PAIR(projectiles[i].color));
-    mvaddch(offset_y + p, offset_x + projectiles[i].px, projectiles[i].symbol);
-     attroff(COLOR_PAIR(projectiles[i].color));
-     wnoutrefresh(stdscr);
-}
-    }
-    
-}
-}
-//Function that erases old positions of projectiles each frame and removes spent projectiles
-void erase_projectiles(Projectile *projectiles, int max_x, int max_y){
-    getmaxyx (stdscr, max_y, max_x);
-    for(int i=0; i < MAX_PROJECTILES; i++){
-        if (projectiles[i].state == NORMAL || projectiles[i].state == SPENT){  
-    mvaddch(offset_y + projectiles[i].py, offset_x + projectiles[i].px, ' ');
-     }
-      if ( (projectiles[i].state == SPENT || projectiles[i].state == NORMAL) && projectiles[i].type == LASER){
-get_laser_bounds(&projectiles[i], max_y, max_x, &start_row, &end_row);
-for (int p = start_row; p <= end_row; p++) {
-    mvaddch(offset_y + p, offset_x + projectiles[i].px, ' ');
-}
-    }
+    float start_row, end_row;
+
+    for (int i = 0; i < MAX_PROJECTILES; i++){
+        if (projectiles[i].state != NORMAL) continue;
+
+        if (!is_type(&projectiles[i], "LASER")){
+            attron(COLOR_PAIR(projectiles[i].color));
+            mvaddch(offset_y + projectiles[i].py,
+                    offset_x + projectiles[i].px,
+                    projectiles[i].symbol);
+            attroff(COLOR_PAIR(projectiles[i].color));
+        }
+        else {
+            get_laser_bounds(&projectiles[i], max_y, max_x, &start_row, &end_row);
+            for (int p = (int)start_row; p <= (int)end_row; p++){
+                attron(COLOR_PAIR(projectiles[i].color));
+                mvaddch(offset_y + p,
+                        offset_x + projectiles[i].px,
+                        projectiles[i].symbol);
+                attroff(COLOR_PAIR(projectiles[i].color));
+            }
         }
     }
+
+    wnoutrefresh(stdscr); //Once per frame, after all projectiles are drawn
+}
+
+//Function that erases old positions of projectiles each frame and removes spent projectiles
+void erase_projectiles(Projectile *projectiles, int max_x, int max_y){
+    float start_row, end_row;
+
+    getmaxyx(stdscr, max_y, max_x);
+    for (int i = 0; i < MAX_PROJECTILES; i++){
+        if (projectiles[i].state == NORMAL || projectiles[i].state == SPENT){
+            mvaddch(offset_y + projectiles[i].py,
+                    offset_x + projectiles[i].px, ' ');
+        }
+
+        if ((projectiles[i].state == SPENT || projectiles[i].state == NORMAL) &&
+            is_type(&projectiles[i], "LASER")){
+            get_laser_bounds(&projectiles[i], max_y, max_x, &start_row, &end_row);
+            for (int p = (int)start_row; p <= (int)end_row; p++){
+                mvaddch(offset_y + p, offset_x + projectiles[i].px, ' ');
+            }
+        }
+    }
+}
