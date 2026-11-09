@@ -1,5 +1,6 @@
 #include <pdcurses.h>
 #include <math.h>
+#include <string.h>
 #include "gamedata.h"
 #include "window.h"
 #include "enemy.h"
@@ -19,7 +20,7 @@ Projectile projectiles[MAX_PROJECTILES] = {
     .pierce = 1, .turn_rate=0,
     .type = BULLET, .state=SPENT,
      .color=3, .player_owned = FALSE,
-     .damage = 1
+     .damage = 1, .special =0, .name = "default"
     }
 };
 /*Chart of symbols based on projectile type
@@ -170,6 +171,7 @@ int findfreeprojectileslot(void){
 }
 //Finds the address of a weapon and returns it. 
 //Add a new case each time a new weapon is made
+//Outdated, no longer used
  WeaponType* get_weapon_template(WeaponID weapon_id) {
     switch (weapon_id) {
         case AUTOPISTOL_ID:          return &autopistol;
@@ -202,6 +204,73 @@ int findfreeprojectileslot(void){
 }
 //Function that fires one projectile at a given angle, returns cooldown timer
 #define LASER_DURATION_FRAMES 150
+int sound_from_name(const char *name)
+{
+    if (strcmp(name, "Machine_Gun") == 0) return Machine_Gun;
+    if (strcmp(name, "Laser_sound") == 0) return Laser_sound;
+    if (strcmp(name, "Bomb_sound") == 0)  return Bomb_sound;
+    if (strcmp(name, "Missile_sound") == 0) return Missile_sound;
+    return -1;
+}
+
+//New weapon firing function
+void fire_weapon(const WeaponType *weapon, float px, float py, float angle, bool player_owned)
+{
+    if (weapon->bullet_index < 0) return;  /* Unresolved bullet name */
+
+    const BulletType *bt = &bullets[weapon->bullet_index];
+    int reverse_angle = 1;
+
+    for (int i = 0; i < weapon->number; i++) {
+        if (weapon->omnidirectional == FALSE) {
+            reverse_angle = -reverse_angle;
+        }
+
+        int slot = findfreeprojectileslot();
+        if (slot == -1) {
+            return;  /* No free projectile slots */
+        }
+        slot += i;
+
+        Projectile *p = &projectiles[slot];
+        p->state     = REGULAR;
+        p->px        = px;
+        p->py        = py;
+        p->angle     = angle + (i * weapon->offset_angle * reverse_angle);
+        p->age       = 0;
+        p->width     = bt->width;
+        p->height    = bt->height;
+
+        strncpy(p->name, bt->name, sizeof(p->name) - 1);
+        p->name[sizeof(p->name) - 1] = '\0';
+
+        p->symbol    = bt->symbol;
+        p->pierce    = bt->pierce;
+        p->strafe    = bt->strafe;
+        p->turn_rate = bt->turn_rate;
+        p->dx        = bt->dx;
+        p->dy        = bt->dy;
+        p->damage    = bt->damage;
+        p->special   = bt->special;
+
+        if (bt->sound[0] != '\0') {
+            int sound_index = sound_from_name(bt->sound);
+            if (sound_index != -1) {
+                ma_sound_start(&loaded_sounds[sound_index]);
+            }
+        }
+
+        if (player_owned) {
+            p->player_owned = TRUE;
+            p->color = 4;
+        } else {
+            p->player_owned = FALSE;
+            p->color = 3;
+        }
+    }
+}
+//Old version, now unused
+/*
 void fire_weapon(const WeaponType *weapon, float px, float py, float angle, bool player_owned){
 int reverse_angle = 1;
 for(int i =0; i < weapon->number; i++){
@@ -301,6 +370,8 @@ else if (player_owned == FALSE){projectiles[slot + i].player_owned = FALSE;
 }
 
 }
+*/
+
 // Function that moves and updates projectiles
 void move_projectiles(Projectile *projectiles, int max_x, int max_y){
     for(int i = 0; i < MAX_PROJECTILES; i++){

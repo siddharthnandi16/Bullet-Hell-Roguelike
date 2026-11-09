@@ -43,4 +43,26 @@ extern PlayerDefs player_defs[MAX_PLAYER_TYPES];
 extern int player_def_count;
 void LoadPlayerDefs(void);
 void PlayerFromDef(Player *p, const PlayerDefs *d);
+#define MAX_BULLET_TYPES 50
+
+typedef struct {
+    char  name[32];
+    char  symbol;
+    int   pierce;
+    int   strafe;
+    float turn_rate;
+    float dx;
+    float dy;
+    int   damage;
+    int   width;
+    int   height;
+    int   special;
+    char  sound[32];   /* empty string when the JSON value is null */
+} BulletType;
+
+extern BulletType bullets[MAX_BULLET_TYPES];
+extern int bullet_type_count;
+int find_bullet_index(const char *name);
+int Parse_Bullet_Types(const char *path);
+int Load_Weapon_Bullets(WeaponType *weapons, int weapon_count);
 #endif

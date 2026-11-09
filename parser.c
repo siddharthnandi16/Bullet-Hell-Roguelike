@@ -72,13 +72,15 @@ void ParseWeaponArray(cJSON *array, WeaponType *weapons, int *i, int max) {
         cJSON *off  = cJSON_GetObjectItemCaseSensitive(item, "offset_angle");
 cJSON *omni = cJSON_GetObjectItemCaseSensitive(item, "omnidirectional");
 
+        memset(w, 0, sizeof(*w));
         if (cJSON_IsString(vname)) w->var_name = strdup(vname->valuestring);
         if (cJSON_IsString(name)) w->display_name = strdup(name->valuestring);
         if (cJSON_IsNumber(cd))   w->cooldown_frames = cd->valueint;
         if (cJSON_IsNumber(num))  w->number = num->valueint;
         if (cJSON_IsNumber(ang))  w->angle = (float)ang->valuedouble;
 
-        if (cJSON_IsString(type)) w->type = StringToProjType(type->valuestring);
+       if (cJSON_IsString(type)) strncpy(w->type, type->valuestring, sizeof(w->type) - 1);
+        w->type[sizeof(w->type) - 1] = '\0';
         if (cJSON_IsString(mode)) w->modes = StringToFireModes(mode->valuestring);
         if (cJSON_IsString(id))   w->weapon_id = StringToWeaponID(id->valuestring);
         if (cJSON_IsNumber(off))  w->offset_angle = (float)off->valuedouble;
@@ -120,9 +122,9 @@ if (cJSON_IsArray(player)) ParseWeaponArray(player, weapons, &i, 100);
 if (cJSON_IsArray(enemy))  ParseWeaponArray(enemy,  weapons, &i, 100);
 weapon_count = i;  
 
-cJSON_Delete(root);  
-//Weapon counting is currently bugged
- fprintf(stderr, "\n Succesfully loaded weapons. Weapon count: %d", weapon_count, "     \n");
+Load_Weapon_Bullets(weapons, weapon_count);
+cJSON_Delete(root);
+fprintf(stderr, "\nSuccessfully loaded weapons. Weapon count: %d\n", weapon_count);
 free(weapons_raw);
 }
 //Function to find weapons from strings
@@ -326,4 +328,90 @@ void PlayerFromDef(Player *p, const PlayerDefs *d) {
         p->inventory_data[i]  = find_weapon(d->inventory[i]);
         p->inventory[i] = p->inventory_data[i] ? p->inventory_data[i]->weapon_id : EMPTY_ID;
     }
+}
+//Function to parse bullet types from JSON file
+
+int find_bullet_index(const char *name)
+{
+    for (int i = 0; i < bullet_type_count; i++) {
+        if (strcmp(bullets[i].name, name) == 0) return i;
+    }
+    return -1;
+}
+BulletType bullets[MAX_BULLET_TYPES];
+int bullet_type_count = 0;
+
+int Parse_Bullet_Types(const char *path)
+{
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    rewind(f);
+
+    char *buf = malloc(len + 1);
+    if (!buf) { fclose(f); return -1; }
+    fread(buf, 1, len, f);
+    buf[len] = '\0';
+    fclose(f);
+
+    cJSON *root = cJSON_Parse(buf);
+    free(buf);
+    if (!root) return -1;
+
+    bullet_type_count = 0;
+    cJSON *entry;
+    cJSON_ArrayForEach(entry, root) {
+        if (bullet_type_count >= MAX_BULLET_TYPES) break;
+
+        BulletType *b = &bullets[bullet_type_count];
+        memset(b, 0, sizeof(*b));
+        strncpy(b->name, entry->string, sizeof(b->name) - 1);
+
+        cJSON *sym = cJSON_GetObjectItem(entry, "symbol");
+        if (sym && cJSON_IsString(sym)) b->symbol = sym->valuestring[0];
+
+        cJSON *item;
+        if ((item = cJSON_GetObjectItem(entry, "pierce")))    b->pierce    = item->valueint;
+        if ((item = cJSON_GetObjectItem(entry, "strafe")))    b->strafe    = item->valueint;
+        if ((item = cJSON_GetObjectItem(entry, "turn_rate"))) b->turn_rate = (float)item->valuedouble;
+        if ((item = cJSON_GetObjectItem(entry, "dx")))        b->dx        = (float)item->valuedouble;
+        if ((item = cJSON_GetObjectItem(entry, "dy")))        b->dy        = (float)item->valuedouble;
+        if ((item = cJSON_GetObjectItem(entry, "damage")))    b->damage    = item->valueint;
+        if ((item = cJSON_GetObjectItem(entry, "width")))     b->width     = item->valueint;
+        if ((item = cJSON_GetObjectItem(entry, "height")))    b->height    = item->valueint;
+        if ((item = cJSON_GetObjectItem(entry, "special")))   b->special   = item->valueint;
+
+        item = cJSON_GetObjectItem(entry, "sound");
+        if (item && cJSON_IsString(item))
+            strncpy(b->sound, item->valuestring, sizeof(b->sound) - 1);
+
+        bullet_type_count++;
+    }
+
+    cJSON_Delete(root);
+     for (int i = 0; i < bullet_type_count; i++) {
+        BulletType *b = &bullets[i];
+        fprintf(stderr,
+                "[bullets] loaded %s: symbol='%c' pierce=%d strafe=%d turn_rate=%.2f "
+                "dx=%.2f dy=%.2f damage=%d width=%d height=%d special=%d sound='%s'\n",
+                b->name, b->symbol, b->pierce, b->strafe, b->turn_rate,
+                b->dx, b->dy, b->damage, b->width, b->height, b->special, b->sound);
+    }
+    return bullet_type_count;
+}
+//Checks for errors
+int Load_Weapon_Bullets(WeaponType *weapons, int weapon_count)
+{
+    int errors = 0;
+    for (int w = 0; w < weapon_count; w++) {
+        weapons[w].bullet_index = find_bullet_index(weapons[w].type);
+        if (weapons[w].bullet_index == -1) {
+            fprintf(stderr, "[weapons] unknown bullet '%s' for weapon %d\n",
+                    weapons[w].type, w);
+            errors++;
+        }
+    }
+    return errors;
 }

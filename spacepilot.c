@@ -31,7 +31,8 @@ Planned additional features: Music, Power-Ups, unlockable upgrades, screen-clear
 int game_over =0; //1= true, 0=false
 //Function to load data from JSON files
 void LoadData(){
-     LoadWeapons();       // must be first: everything below resolves weapons by name
+    Parse_Bullet_Types("Data/bullet_types.json"); //Needs to be first as bullet types are resolved by name
+     LoadWeapons();       // must be second: everything below resolves weapons by name
     LoadEnemyDefs();
     LoadPlayerDefs();    // only fills player_defs[], doesn't need weapons yet
     PlayerFromDef(&player,               &player_defs[0]);
@@ -39,6 +40,8 @@ void LoadData(){
     PlayerFromDef(&flying_fortress,      &player_defs[2]);
     PlayerFromDef(&experimental_fighter, &player_defs[3]);
     PlayerFromDef(&player_backup,        &player_defs[0]);
+    
+    
 }
 //This function sets the player's current movement speed to their top speed
 void setplayermovement(struct Player *player){

@@ -23,13 +23,15 @@ typedef struct Projectile{
     char symbol;
     int width, height;
     int damage; //Determines HP damage dealt
-    int age; //Used for bomb detionation timers
+    int age; //Used for bomb detonation timers
     int pierce; //Tells you how many enemies a projectile can pierce before being spent
     int color; // Is 3 for enemy projectiles and 4 for player projectiles
     float strafe; //Used for special bullets that travel in sine-wave pattern
     float turn_rate; //Used for homing projectiles
     float angle;
-    ProjType type; //Used for storing the type of weapon this is 
+    int special; //Selects a unique behavior in the special-behavior switch; 0 means none
+    char name[32]; //Bullet type name from bullets.json
+    ProjType type; //Used for storing what type of bullet this is, now unused
     ProjState state;
     bool player_owned;
 }Projectile;
@@ -75,8 +77,10 @@ typedef struct WeaponType{
     float offset_angle; //Angle at which secondary projectiles are offset from main projectile
     bool omnidirectional; //Checks whether the weapon fires in all directions
     WeaponID weapon_id;
-    ProjType type;
+    //ProjType type;
     FireModes modes;
+    char type[32];      /* bullet name from weapons data, e.g. "BULLET" */
+    int bullet_index;   /* resolved index into bullets[], -1 if unresolved */
 }WeaponType;
 typedef enum PlayerClass{PLAYER_DEBUG, PLAYER_FIGHTER, PLAYER_FORTRESS, PLAYER_EXPERIMENTAL}PlayerClass;
 #define INV_SIZE 10

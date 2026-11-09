@@ -1,0 +1,93 @@
+{
+  "BULLET": {
+    "symbol": "+",
+    "pierce": 1,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 0,
+    "dy": -1,
+    "damage": 1,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": "Machine_Gun"
+  },
+  "LASER": {
+    "symbol": "|",
+    "pierce": 4,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 0,
+    "dy": 0,
+    "damage": 2,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": "Laser_sound"
+  },
+  "BOMB": {
+    "symbol": "O",
+    "pierce": 1,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 0,
+    "dy": -0.5,
+    "damage": 3,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": "Bomb_sound"
+  },
+  "MISSILE": {
+    "symbol": "^",
+    "pierce": 2,
+    "strafe": 0,
+    "turn_rate": 30,
+    "dx": 0,
+    "dy": -2,
+    "damage": 2,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": "Missile_sound"
+  },
+  "PLASMA": {
+    "symbol": "*",
+    "pierce": 1,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 0,
+    "dy": -3,
+    "damage": 2,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": null
+  },
+  "EMP": {
+    "symbol": "-",
+    "pierce": 100,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 0,
+    "dy": 0,
+    "damage": 0,
+    "width": 1000,
+    "height": 1000,
+    "special": 0,
+    "sound": null
+  },
+  "CHAINLIGHTNING": {
+    "symbol": "~",
+    "pierce": 10,
+    "strafe": 0,
+    "turn_rate": 0,
+    "dx": 10,
+    "dy": -10,
+    "damage": 3,
+    "width": 1,
+    "height": 1,
+    "special": 0,
+    "sound": null
+  }
+}
