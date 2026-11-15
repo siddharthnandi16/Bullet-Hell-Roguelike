@@ -2,6 +2,7 @@
 #define PARSER_H
 #include "gamedata.h"
 #include "cJSON.h"
+#include "patterns.h"
 #define MAX_WEAPON_TYPES 200
 #define MAX_ENEMY_DEFS 200
 #define MAX_PLAYER_TYPES 50
@@ -65,4 +66,8 @@ extern int bullet_type_count;
 int find_bullet_index(const char *name);
 int Parse_Bullet_Types(const char *path);
 int Load_Weapon_Bullets(WeaponType *weapons, int weapon_count);
+
+int load_patterns_file(const char *path, NamedPattern *out, int max_out);
+int  load_patterns(const char *json_text, NamedPattern *out, int max_out);
+void free_patterns(NamedPattern *out, int count);
 #endif

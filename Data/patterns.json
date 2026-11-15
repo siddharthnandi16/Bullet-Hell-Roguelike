@@ -1,0 +1,24 @@
+{
+  "patterns": {
+    "ring": {
+      "duration_frames": 1,
+      "steps": [
+        { "time": 0, "angle": 0, "speed": 3.0, "count": 16, "spread": 337.5,
+          "type": "BULLET", "special": 0 }
+      ]
+    },
+    "square": {
+      "duration_frames": 1,
+      "steps": [
+        { "time": 0, "angle": 0,   "speed": 3.0, "count": 1, "spread": 0,
+          "type": "BULLET", "special": 0 },
+        { "time": 0, "angle": 90,  "speed": 3.0, "count": 1, "spread": 0,
+          "type": "BULLET", "special": 0 },
+        { "time": 0, "angle": 180, "speed": 3.0, "count": 1, "spread": 0,
+          "type": "BULLET", "special": 0 },
+        { "time": 0, "angle": 270, "speed": 3.0, "count": 1, "spread": 0,
+          "type": "BULLET", "special": 0 }
+      ]
+    }
+  }
+}

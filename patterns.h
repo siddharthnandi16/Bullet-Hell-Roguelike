@@ -32,4 +32,12 @@ extern PatternInstance instances[MAX_PATTERNS];
 int start_pattern(const BulletPattern *pattern, float origin_x, float origin_y);
 static void fire_step(const BulletStep *s, float origin_x, float origin_y);
 int update_pattern_instance(PatternInstance *inst);
+typedef struct {
+    char          name[32];
+    BulletPattern pattern;
+} NamedPattern;
+int  init_patterns(const char *json_text);
+void shutdown_patterns(void);
+int  start_named_pattern(const char *name, float x, float y);
+
 #endif

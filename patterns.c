@@ -2,6 +2,7 @@
 #include "gamedata.h"
 #include "projectile.h"
 #include "parser.h"
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 PatternInstance instances[MAX_PATTERNS] = {0};
@@ -90,4 +91,45 @@ int update_pattern_instance(PatternInstance *inst)
 
     inst->frame++;
     return 1;
+}
+
+//Defines patterns
+#define MAX_LOADED_PATTERNS 50
+static NamedPattern loaded_patterns[MAX_LOADED_PATTERNS];
+static int loaded_count = 0;
+
+/* Startup: after Parse_Bullet_Types() */
+int init_patterns(const char *path)
+{
+    loaded_count = load_patterns_file(path, loaded_patterns, MAX_LOADED_PATTERNS);
+    if (loaded_count < 0) {
+        fprintf(stderr, "init_patterns: failed to load patterns\n");
+        return -1;
+    }
+
+    fprintf(stderr, "init_patterns: loaded %d pattern(s):\n", loaded_count);
+    for (int i = 0; i < loaded_count; i++) {
+        fprintf(stderr, "  [%d] %s (%d steps, %d frames)\n",
+                i,
+                loaded_patterns[i].name,
+                loaded_patterns[i].pattern.step_count,
+                loaded_patterns[i].pattern.duration_frames);
+    }
+    return loaded_count;
+}
+
+/* Shutdown, to be called when the game closes */
+void shutdown_patterns(void)
+{
+    free_patterns(loaded_patterns, loaded_count);
+    loaded_count = 0;
+}
+//Starts a given pattern
+int start_named_pattern(const char *name, float x, float y)
+{
+    for (int i = 0; i < loaded_count; i++) {
+        if (strcmp(loaded_patterns[i].name, name) == 0)
+            return start_pattern(&loaded_patterns[i].pattern, x, y);
+    }
+    return -1;  /* Unknown pattern name */
 }

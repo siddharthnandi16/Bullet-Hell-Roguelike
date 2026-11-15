@@ -415,3 +415,189 @@ int Load_Weapon_Bullets(WeaponType *weapons, int weapon_count)
     }
     return errors;
 }
+//Parses bullet pattern from JSON files
+int load_patterns_file(const char *path, NamedPattern *out, int max_out)
+{
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        fprintf(stderr, "load_patterns_file: file not found: %s\n", path);
+        return -1;
+    }
+
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return -1;
+    }
+    long size = ftell(f);
+    if (size < 0 || fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return -1;
+    }
+
+    char *buf = malloc((size_t)size + 1);
+    if (!buf) {
+        fclose(f);
+        return -1;
+    }
+
+    size_t n = fread(buf, 1, (size_t)size, f);
+    buf[n] = '\0';
+    fclose(f);
+
+    int count = load_patterns(buf, out, max_out);
+    free(buf);
+    return count;
+}
+
+static int get_int(const cJSON *obj, const char *key, int *out)
+{
+    const cJSON *item = cJSON_GetObjectItemCaseSensitive(obj, key);
+    if (!cJSON_IsNumber(item)) return -1;
+    *out = item->valueint;
+    return 0;
+}
+
+static int get_float(const cJSON *obj, const char *key, float *out)
+{
+    const cJSON *item = cJSON_GetObjectItemCaseSensitive(obj, key);
+    if (!cJSON_IsNumber(item)) return -1;
+    *out = (float)item->valuedouble;
+    return 0;
+}
+
+static int parse_step(const cJSON *j, BulletStep *s)
+{
+    const cJSON *type = cJSON_GetObjectItemCaseSensitive(j, "type");
+    if (!cJSON_IsString(type)) {
+        fprintf(stderr, "parse_step: 'type' missing or not a string\n");
+        return -1;
+    }
+
+    int bi = find_bullet_index(type->valuestring);
+    if (bi < 0) {
+        fprintf(stderr, "parse_step: unknown bullet type '%s' (is bullets[] loaded?)\n",
+                type->valuestring);
+        return -1;
+    }
+
+    if (get_int(j, "time", &s->time) != 0) {
+        fprintf(stderr, "parse_step: 'time' missing or not a number\n");
+        return -1;
+    }
+    if (get_float(j, "angle", &s->angle) != 0) {
+        fprintf(stderr, "parse_step: 'angle' missing or not a number\n");
+        return -1;
+    }
+    if (get_float(j, "speed", &s->speed) != 0) {
+        fprintf(stderr, "parse_step: 'speed' missing or not a number\n");
+        return -1;
+    }
+    if (get_int(j, "count", &s->count) != 0) {
+        fprintf(stderr, "parse_step: 'count' missing or not a number\n");
+        return -1;
+    }
+    if (get_float(j, "spread", &s->spread) != 0) {
+        fprintf(stderr, "parse_step: 'spread' missing or not a number\n");
+        return -1;
+    }
+
+    /* special is optional, defaults to 0 */
+    if (get_int(j, "special", &s->special) != 0)
+        s->special = 0;
+
+    s->type = bullets[bi].name;
+    return 0;
+}
+static int compare_steps(const void *a, const void *b)
+{
+    const BulletStep *sa = a, *sb = b;
+    return (sa->time > sb->time) - (sa->time < sb->time);
+}
+static int parse_pattern(const cJSON *def, BulletPattern *out)
+{
+    const cJSON *steps = cJSON_GetObjectItemCaseSensitive(def, "steps");
+    if (!cJSON_IsArray(steps)) {
+        fprintf(stderr, "parse_pattern: 'steps' missing or not an array\n");
+        return -1;
+    }
+
+    int dur;
+    if (get_int(def, "duration_frames", &dur) != 0) {
+        fprintf(stderr, "parse_pattern: 'duration_frames' missing or not a number\n");
+        return -1;
+    }
+
+    int n = cJSON_GetArraySize(steps);
+    BulletStep *arr = calloc(n > 0 ? n : 1, sizeof *arr);
+    if (!arr) {
+        fprintf(stderr, "parse_pattern: out of memory for %d steps\n", n);
+        return -1;
+    }
+
+    int i = 0;
+    const cJSON *j;
+    cJSON_ArrayForEach(j, steps) {
+        if (parse_step(j, &arr[i]) != 0) {
+            fprintf(stderr, "parse_pattern: step %d failed\n", i);
+            free(arr);
+            return -1;
+        }
+        i++;
+    }
+
+    qsort(arr, n, sizeof *arr, compare_steps);
+
+    out->steps           = arr;
+    out->step_count      = n;
+    out->duration_frames = dur;
+    return 0;
+}
+
+int load_patterns(const char *json_text, NamedPattern *out, int max_out)
+{
+    cJSON *root = cJSON_Parse(json_text);
+    if (!root) {
+        fprintf(stderr, "load_patterns: JSON parse error near: %.40s\n",
+                cJSON_GetErrorPtr() ? cJSON_GetErrorPtr() : "(unknown)");
+        return -1;
+    }
+
+    const cJSON *patterns = cJSON_GetObjectItemCaseSensitive(root, "patterns");
+    if (!cJSON_IsObject(patterns)) {
+        fprintf(stderr, "load_patterns: top-level 'patterns' object missing\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+
+    int count = 0;
+    const cJSON *def;
+    cJSON_ArrayForEach(def, patterns) {
+        if (count >= max_out) {
+            fprintf(stderr, "load_patterns: more than %d patterns, raise the limit\n", max_out);
+            goto fail;
+        }
+
+        strncpy(out[count].name, def->string, sizeof out[count].name - 1);
+        out[count].name[sizeof out[count].name - 1] = '\0';
+
+        if (parse_pattern(def, &out[count].pattern) != 0) {
+            fprintf(stderr, "load_patterns: pattern '%s' failed\n", def->string);
+            goto fail;
+        }
+        count++;
+    }
+
+    cJSON_Delete(root);
+    return count;
+
+fail:
+    free_patterns(out, count);
+    cJSON_Delete(root);
+    return -1;
+}
+
+void free_patterns(NamedPattern *out, int count)
+{
+    for (int i = 0; i < count; i++)
+        free(out[i].pattern.steps);
+}

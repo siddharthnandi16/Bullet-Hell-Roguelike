@@ -41,7 +41,7 @@ void LoadData(){
     PlayerFromDef(&flying_fortress,      &player_defs[2]);
     PlayerFromDef(&experimental_fighter, &player_defs[3]);
     PlayerFromDef(&player_backup,        &player_defs[0]);
-
+    init_patterns("Data/patterns.json");
     
 }
 //This function sets the player's current movement speed to their top speed
@@ -300,8 +300,7 @@ if (game_mode != MODE_QUIT){
      game_mode = drawTitleScreen(); 
 }
     }
-    
-    
+    shutdown_patterns();
     endwin();
     return 0;
 }
