@@ -30,6 +30,7 @@ These were open in the design doc. This plan assumes the defaults below. Change 
 - Multiplier clamp: minimum 0.6, maximum 1.0, applied after the speed factor and lives penalty are combined.
 - Shop offer size: 8 upgrades. Each upgrade can be bought once per run.
 - Ships are chosen before a run and fixed for it.
+- Two ship types for now: a cannon ship (high damage, narrow forward cone, normal speed) and a missile ship (low-damage homing missiles, slower speed). Each stage must be balanced for both.
 - Score and currency are separate. Every currency gain adds the same amount to score. Spending reduces currency only.
 - All content lives in JSON. Balance values live in `Data/tuning.json`.
 - No gameplay code calls raylib. Rendering reads game state and never writes it.
@@ -475,6 +476,7 @@ Rules:
 - `buy` fails for an upgrade already in `bought`.
 - Each special's cooldown is independent. Swapping an equipped special does not reset its timer.
 - `roll_shop` never returns an owned upgrade and returns at most `count` distinct items.
+- `Data/players.json` defines two ships: a cannon ship and a missile ship. Each has base speed, a starting weapon (a forward cone weapon for the cannon ship, homing missiles for the missile ship), and a `portrait` path. The loader rejects a ship whose starting weapon does not exist in `weapons.json`.
 
 - [ ] **Step 1: Write failing tests**
 
@@ -693,7 +695,7 @@ Expected: PASS.
 
 - [ ] **Step 5: Playtest and commit**
 
-Play a full run from title to ending on each of the three routes. Tune balance numbers in `Data/tuning.json` and the wave data, without recompiling.
+Play a full run from title to ending on each of the three routes, once with the cannon ship and once with the missile ship. Each stage should be clearable by both ships, and each should favor one ship's strengths. Tune balance numbers in `Data/tuning.json` and the wave data, without recompiling.
 
 ```bash
 git commit -am "content: first playable route and checked data set"
@@ -714,7 +716,9 @@ git commit -am "content: first playable route and checked data set"
 - Produces: `struct Portrait { std::string path; int width; int height; }`, `Portrait load_portrait(path)`, and `void draw_portrait(const Portrait&, Rect)`. `Data/palette.json` provides the palette used in Task 14.
 
 Rules:
-- A portrait is shown on the boss intro, the shop screen for the ship, and cutscenes that name a speaker.
+- A portrait is shown on the boss intro, the shop screen for the ship, and cutscenes that name a speaker. Every named character who speaks in a cutscene has a `portrait` field in their cutscene data, the same as ships and bosses.
+- The title screen draws its art from a `title_art` path in `Data/tuning.json` or a dedicated title data file. A missing title image shows a plain title, with no crash.
+- Placeholder frames keep the same size as the final art, so swapping in real images does not change the layout.
 - A missing portrait file shows a neutral placeholder frame with the name, and logs a `DataError` as a warning. It does not crash.
 - Portrait images are not scaled beyond their native size; they are scaled down to fit their frame.
 - Backgrounds use the stage's `background` field and must pass the Task 14 contrast check against all bullet colors.

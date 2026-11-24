@@ -56,6 +56,13 @@ Success means: a complete run can be played from title screen to ending, and any
 
 A run starts from the title screen with a ship choice. The ship is fixed for the whole run and defines base stats and the starting weapon.
 
+There are two ship types for now:
+
+- **Cannon ship:** high damage in a narrow cone in front. Moves at normal speed. Its weakness is targets off to the side or behind, and it has to be lined up to hit well.
+- **Missile ship:** low-damage homing missiles. Moves slower. It covers the whole screen, but each hit does little, and it struggles against fast or heavily armored targets.
+
+Every stage must be balanced for both ships. Each stage should reward the strengths of one ship and punish the weaknesses of the other, so neither ship is the best choice for every route.
+
 Each run has:
 
 - A route map of stages (Section 8).
@@ -91,6 +98,8 @@ The final stage is always the same stage, always at the same difficulty. Its bos
 ## 10. Stages, Waves, and Routing Gates
 
 A stage is a list of 10 to 20 waves drawn from a fixed pool, weighted by difficulty, followed by a boss. The stage file points to separate files for its wave pool, boss, and other assets, so these can be reused across stages.
+
+**Ship balance:** every stage and boss must be playable and fair for both ship types. A stage that one ship can clear easily and the other cannot is a balance fault, but neither ship should be strictly better across all stages.
 
 **Performance gate:** each stage defines what a poor result means for the harder exit. A poor result blocks the harder exit and the game explains why through story dialogue. A good result offers both exits.
 
@@ -224,6 +233,21 @@ Likely core classes: `Run`, `MapGraph`, `Stage`, `Wave`, `Boss`, `Phase`, `Spell
 - Cell size is a display setting. Scaling chooses the cell size to fit the window.
 - Borderless windowed mode is a display setting that does not change gameplay.
 - Stage results, map, shop, title, and cutscene screens are also ASCII.
+
+## Art Assets and Placeholders
+
+Hand-drawn art is planned for these, and each one is referenced by file path in its data:
+
+- **Portraits** for every character that appears: each playable ship pilot, each boss, and any named character who speaks in a cutscene. A cutscene line names its speaker, and that speaker's portrait is shown.
+- **Title screen art**, referenced from the title screen's data.
+- **Stage backgrounds**, one per stage theme (Section 10 and the data layout).
+
+Until the real art exists, the game uses placeholders:
+
+- A missing portrait shows a neutral framed box with the character's name.
+- Missing title art shows a plain title with no image.
+- A missing image logs a warning and never crashes the game.
+- Placeholders keep the same frame size as the real art, so swapping in the final image does not change the layout.
 
 ## 22. Deferred Values (Tuned in Playtesting)
 
