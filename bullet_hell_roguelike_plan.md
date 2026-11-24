@@ -33,6 +33,13 @@ These were open in the design doc. This plan assumes the defaults below. Change 
 - Score and currency are separate. Every currency gain adds the same amount to score. Spending reduces currency only.
 - All content lives in JSON. Balance values live in `Data/tuning.json`.
 - No gameplay code calls raylib. Rendering reads game state and never writes it.
+- Visual clarity is vital. Color coding distinguishes players, enemies, bosses, and backgrounds.
+- Bullets never blend into the background. Every bullet color must meet a contrast ratio of at least 4.5:1 against every background color it can appear over (WCAG relative luminance).
+- Player bullets and enemy bullets use colors that are distinct from each other and from the player, enemy, and boss colors.
+- The palette lives in `Data/palette.json`, so colors can be changed without recompiling.
+- The game has a sci-fi theme. Gameplay visuals, HUD, and screens use sci-fi styling where possible.
+- Each boss is based on a sci-fi concept, and each boss's concept is recorded in its data.
+- Bosses and player ships each have a hand-drawn portrait, loaded from a file path in their data.
 
 ## Review Focus
 
@@ -262,7 +269,7 @@ git commit -am "feat: currency and score ledger"
 
 **Interfaces:**
 - Consumes: `load_json`, `JsonDoc` (Task 2)
-- Produces: `BulletRegistry load_bullets(path)` and `WeaponRegistry load_weapons(path, const BulletRegistry&)`. A weapon referencing an unknown bullet name fails with `DataError` naming both the weapon and the bullet.
+- Produces: `BulletRegistry load_bullets(path)` and `WeaponRegistry load_weapons(path, const BulletRegistry&)`. Each bullet type has a `color` field and an `owner` field (`Player` or `Enemy`), so the renderer can color bullets by owner. A weapon referencing an unknown bullet name fails with `DataError` naming both the weapon and the bullet.
 
 - [ ] **Step 1: Write failing tests**
 
@@ -369,7 +376,7 @@ git commit -am "feat: enemies with multiple weapons and frame-based wave runner"
 
 **Interfaces:**
 - Consumes: `load_json` (Task 2)
-- Produces: `enum class PhaseKind { Plain, Spell }`, `struct Phase { PhaseKind kind; int timer_frames; float health_threshold; std::vector<std::string> patterns; int capture_bonus; }`, `struct Boss { std::string id; int clear_bonus; std::vector<Phase> phases; }`, and `Boss load_boss(path)`. `class BossFight` tracks the current phase, whether a bomb or life was used during it, and whether the fight has finished.
+- Produces: `struct Boss` also has `std::string theme` (the sci-fi concept, for example "swarm intelligence" or "gravity collapse") and `std::string portrait` (file path, see Task 17). `enum class PhaseKind { Plain, Spell }`, `struct Phase { PhaseKind kind; int timer_frames; float health_threshold; std::vector<std::string> patterns; int capture_bonus; }`, `struct Boss { std::string id; int clear_bonus; std::vector<Phase> phases; }`, and `Boss load_boss(path)`. `class BossFight` tracks the current phase, whether a bomb or life was used during it, and whether the fight has finished.
 
 Rules:
 - The loader rejects a boss whose last phase is Plain, and any Plain phase that comes after the last Spell phase.
@@ -413,7 +420,7 @@ git commit -am "feat: boss phases, spell cards, and capture bonus"
 
 **Interfaces:**
 - Consumes: `load_json` (Task 2), `load_pool` (Task 7), `load_boss` (Task 9)
-- Produces: `enum class Difficulty { Easy, Medium, Hard }`, `struct Exit { std::string target_stage; std::string gate; }`, `struct StageDef { std::string id; Difficulty difficulty; std::string wave_pool; std::string boss; Exit harder_exit; Exit easier_exit; }`, `class MapGraph` with `const StageDef& stage(id)` and `std::vector<Exit> available_exits(id, const RunStats&)`. `Difficulty step_difficulty(Difficulty, bool harder)` clamps at the ends. `std::string select_ending(Difficulty source)` returns `"secret"`, `"neutral"`, or `"bad"`.
+- Produces: `enum class Difficulty { Easy, Medium, Hard }`, `struct Exit { std::string target_stage; std::string gate; }`, `struct StageDef { std::string id; Difficulty difficulty; std::string background; std::string wave_pool; std::string boss; Exit harder_exit; Exit easier_exit; }`, `class MapGraph` with `const StageDef& stage(id)` and `std::vector<Exit> available_exits(id, const RunStats&)`. `Difficulty step_difficulty(Difficulty, bool harder)` clamps at the ends. `std::string select_ending(Difficulty source)` returns `"secret"`, `"neutral"`, or `"bad"`.
 
 Rules:
 - `harder_exit` is unavailable when its gate fails. `RunStats` holds the run's lives lost, continues used, and score for the stage.
@@ -585,12 +592,14 @@ git commit -am "feat: suspend and resume with single-use suspend file"
 
 **Interfaces:**
 - Consumes: none from game logic
-- Produces: `struct GridSize { int cols; int rows; }` with `GridSize playfield()` returning 100 by 26. `int cell_size_for(int window_w, int window_h, GridSize)` returns the largest whole-pixel cell size that fits, never less than 1. `struct CharGrid` holds a character and a color per cell. `void draw_grid(const CharGrid&, int cell)` is the only function that draws gameplay with raylib. `void set_borderless(bool)` lives in `window.cpp`.
+- Produces: `struct Palette` loaded from `Data/palette.json`, with named roles for player, enemy, boss, player bullet, enemy bullet, HUD, and each background. `float contrast_ratio(Color a, Color b)` implements the WCAG formula. `struct GridSize { int cols; int rows; }` with `GridSize playfield()` returning 100 by 26. `int cell_size_for(int window_w, int window_h, GridSize)` returns the largest whole-pixel cell size that fits, never less than 1. `struct CharGrid` holds a character and a color per cell. `void draw_grid(const CharGrid&, int cell)` is the only function that draws gameplay with raylib. `void set_borderless(bool)` lives in `window.cpp`.
 
 - [ ] **Step 1: Write failing tests**
 
 - `cell_size_for` returns the cell size that fits 100 by 26 cells in a given window, computed from the font's character aspect.
 - `cell_size_for(1, 1, playfield())` returns 1, not 0.
+- For every bullet color in `Data/palette.json` and every background color, `contrast_ratio` is at least 4.5. A bullet color that fails this check fails the test and names the pair.
+- The player, enemy, and boss colors are pairwise distinct, and each differs from every background color.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -626,6 +635,7 @@ git commit -am "feat: ASCII grid rendering with scaling and borderless mode"
 
 Rules:
 - Gameplay ticks only in `Playing` and when no cutscene is pausing it.
+- HUD and screens use the palette from Task 14 and a sci-fi look: panel borders, monospace readouts, and status labels. No screen uses colors outside the palette.
 - After a stage, `Results` comes first, then `Map`. After a boss, `Shop` comes before `Map`.
 
 - [ ] **Step 1: Write failing tests for transitions**
@@ -689,9 +699,56 @@ Play a full run from title to ending on each of the three routes. Tune balance n
 git commit -am "content: first playable route and checked data set"
 ```
 
+## Task 17: Portraits, Theme Assets, and Visual Check
+
+**Files:**
+- Create: `src/render/portrait.h`, `src/render/portrait.cpp`
+- Create: `Data/palette.json`
+- Create: `assets/portraits/` (hand-drawn portraits, one per ship and per boss)
+- Create: `assets/backgrounds/` (one background per stage theme)
+- Modify: `Data/players.json`, `Data/bosses/*.json` (add `portrait` fields), `Data/stages/*.json` (add `background` fields)
+- Test: `tests/test_portrait.cpp`
+
+**Interfaces:**
+- Consumes: `load_json` (Task 2), `Boss` (Task 9), `StageDef` (Task 10), the screens from Task 15
+- Produces: `struct Portrait { std::string path; int width; int height; }`, `Portrait load_portrait(path)`, and `void draw_portrait(const Portrait&, Rect)`. `Data/palette.json` provides the palette used in Task 14.
+
+Rules:
+- A portrait is shown on the boss intro, the shop screen for the ship, and cutscenes that name a speaker.
+- A missing portrait file shows a neutral placeholder frame with the name, and logs a `DataError` as a warning. It does not crash.
+- Portrait images are not scaled beyond their native size; they are scaled down to fit their frame.
+- Backgrounds use the stage's `background` field and must pass the Task 14 contrast check against all bullet colors.
+
+- [ ] **Step 1: Write failing tests**
+
+- `load_portrait` on a valid file returns non-zero width and height.
+- `load_portrait` on a missing file returns the placeholder and records a warning, without throwing.
+- Every ship in `Data/players.json` and every boss in `Data/bosses/` has a `portrait` field that points to an existing file.
+- Every stage's background passes the bullet contrast check from Task 14.
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `./build/tests -tc="portrait*"`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement portrait loading, the placeholder, and `draw_portrait`, and add the `portrait` and `background` fields to the data**
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `./build/tests -tc="portrait*"`
+Expected: PASS.
+
+- [ ] **Step 5: Visual check and commit**
+
+Run: `./build/game` and check each boss intro, the ship shop card, and one stage of each sci-fi theme. Confirm that player bullets, enemy bullets, and the player ship are readable against each background, and that each portrait displays without distortion.
+
+```bash
+git commit -am "feat: portraits, sci-fi palette, and stage backgrounds"
+```
+
 ## Self-Review
 
-1. **Spec coverage:** Map and endings (Task 10), stages and wave pools (Tasks 7, 10), waves and currency (Task 4), score and currency (Task 5), bosses and spell cards (Task 9), bombs and specials (Task 11), upgrades (Task 11), cutscenes (Task 12), continues and death (Task 11), suspend and high scores (Task 13), data layout (Tasks 2, 3, 6, 7, 9, 10, 11, 12, 16), rendering and scaling (Task 14), screens (Task 15), enemies with multiple weapons (Task 8). All covered.
+1. **Spec coverage:** Map and endings (Task 10), stages and wave pools (Tasks 7, 10), waves and currency (Task 4), score and currency (Task 5), bosses and spell cards (Task 9), bombs and specials (Task 11), upgrades (Task 11), cutscenes (Task 12), continues and death (Task 11), suspend and high scores (Task 13), data layout (Tasks 2, 3, 6, 7, 9, 10, 11, 12, 16), rendering and scaling (Task 14), screens (Task 15), enemies with multiple weapons (Task 8), visual clarity and palette (Tasks 6, 14, 15), sci-fi theme and boss concepts (Tasks 9, 10, 17), portraits (Task 17). All covered.
 2. **Step scan:** Each step is one action. Code blocks show only test names and assertions. Signatures are in Interfaces. No function bodies.
 3. **Type consistency:** `Tuning`, `Ledger`, `Wave`, `Boss`, `Phase`, `MapGraph`, `Run`, `Player`, and `CutsceneQueue` keep one name and signature across the tasks that use them.
 4. **Review Focus:** Each of the five inputs has a test in its owning task.
