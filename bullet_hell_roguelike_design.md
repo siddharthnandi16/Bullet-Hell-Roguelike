@@ -229,7 +229,7 @@ Likely core classes: `Run`, `MapGraph`, `Stage`, `Wave`, `Boss`, `Phase`, `Spell
 
 ## 21. Display
 
-- The playfield is a fixed character grid (currently 100×26).
+- The playfield is a fixed character grid (currently 50×30, to be tuned later).
 - Cell size is a display setting. Scaling chooses the cell size to fit the window.
 - Borderless windowed mode is a display setting that does not change gameplay.
 - Stage results, map, shop, title, and cutscene screens are also ASCII.

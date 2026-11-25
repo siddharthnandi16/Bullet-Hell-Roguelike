@@ -1,0 +1,6 @@
+#ifndef SRC_RENDER_DEBUG_OVERLAY_H_
+#define SRC_RENDER_DEBUG_OVERLAY_H_
+
+#include <string>
+
+#endif  // SRC_RENDER_DEBUG_OVERLAY_H_

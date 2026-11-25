@@ -22,7 +22,7 @@ These were open in the design doc. This plan assumes the defaults below. Change 
 
 - Language: C++17.
 - Test framework: doctest, single header, vendored.
-- Playfield: a fixed character grid of 100 columns by 26 rows.
+- Playfield: a fixed character grid of 50 columns by 30 rows (to be tuned later).
 - Continues per run: 5.
 - Bombs at start: 3. Bomb cap: 10.
 - Speed factor: 1.0 up to 30 seconds, falling linearly to 0.6 at 90 seconds.
