@@ -1,0 +1,41 @@
+{
+  "bullets": [
+    {
+      "id": "basic_pellet",
+      "width": 1,
+      "height": 1,
+      "base_speed": 2.0,
+      "damage": 1,
+      "glyph": ["*"],
+      "color": "enemy_bullet",
+      "tags": [],
+      "children": [],
+      "script": {
+        "rules": []
+      }
+    },
+    {
+      "id": "splitter_orb",
+      "width": 2,
+      "height": 1,
+      "base_speed": 1.2,
+      "damage": 2,
+      "glyph": ["()"],
+      "color": "enemy_bullet_special",
+      "tags": ["splits_on_expire"],
+      "children": ["basic_pellet"],
+      "script": {
+        "rules": [
+          {
+            "when": { "condition": "lifetime", "frames": 60 },
+            "mode": "once",
+            "actions": [
+              { "action": "spawn_child", "child": "basic_pellet" },
+              { "action": "despawn" }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

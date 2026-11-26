@@ -1,0 +1,24 @@
+{
+  "ships": [
+    {
+      "id": "fighter_jet",
+      "width": 3,
+      "height": 1,
+      "speed": 1.5,
+      "starting_bombs": 3,
+      "bomb_type": "screen_clear",
+      "starting_weapon": "basic_blaster",
+      "special_rules": "fast_dodge"
+    },
+    {
+      "id": "flying_fortress",
+      "width": 5,
+      "height": 3,
+      "speed": 0.8,
+      "starting_bombs": 3,
+      "bomb_type": "heavy_blast",
+      "starting_weapon": "basic_blaster",
+      "special_rules": "armor_plating"
+    }
+  ]
+}

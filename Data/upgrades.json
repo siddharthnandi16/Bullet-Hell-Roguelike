@@ -1,0 +1,54 @@
+{
+  "upgrades": [
+    {
+      "id": "rapid_fire_module",
+      "display_name": "Rapid Fire Module",
+      "description": "Blaster fires 25% faster.",
+      "kind": "stat",
+      "price": 150,
+      "max_purchases": 1,
+      "effects": [
+        { "type": "stat_change", "stat": "fire_rate_multiplier", "amount": 1.25 }
+      ],
+      "rules": []
+    },
+    {
+      "id": "shock_lance",
+      "display_name": "Shock Lance",
+      "description": "Grants a screen-clearing special. Cooldown 20 seconds.",
+      "kind": "special",
+      "price": 300,
+      "max_purchases": 1,
+      "cooldown_frames": 1200,
+      "effects": [
+        { "type": "grant_special", "special": "shock_lance" }
+      ],
+      "rules": []
+    },
+    {
+      "id": "twin_drone",
+      "display_name": "Twin Drone",
+      "description": "Adds a second weapon that fires alongside your current one.",
+      "kind": "weapon",
+      "price": 250,
+      "max_purchases": 1,
+      "effects": [
+        { "type": "grant_weapon", "weapon": "basic_blaster" }
+      ],
+      "rules": []
+    },
+    {
+      "id": "reinforced_hull",
+      "display_name": "Reinforced Hull",
+      "description": "Raises the main weapon one level and adds one extra life.",
+      "kind": "life",
+      "price": 200,
+      "max_purchases": 1,
+      "effects": [
+        { "type": "raise_main_weapon_level", "amount": 1 },
+        { "type": "grant_life", "amount": 1 }
+      ],
+      "rules": []
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 CXX = g++
 CC  = gcc
-CXXFLAGS = -std=c++17 -Wall -Wextra -Isrc -Ithird_party -Ithird_party/cJSON -MMD -MP
+CXXFLAGS = -std=c++17 -Wall -Wextra -Isrc -Ithird_party -Ithird_party/cJSON -Isrc -MMD -MP
+TEST_CXXFLAGS += -Ithird_party
 CFLAGS   = -Wall -Wextra -Ithird_party/cJSON -MMD -MP
 LDFLAGS  = -static
 LDLIBS   = -lraylib -l:libglfw3.dll.a -lgdi32 -luser32 -ladvapi32 -lcomdlg32 -lwinmm -lopengl32 -lm -lole32

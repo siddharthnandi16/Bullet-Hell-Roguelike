@@ -1,0 +1,12 @@
+{
+  "by_source_difficulty": {
+    "hard": "secret",
+    "medium": "neutral",
+    "easy": "bad"
+  },
+  "endings": {
+    "secret": { "dialogue": "..." },
+    "neutral": { "dialogue": "..." },
+    "bad": { "dialogue": "..." }
+  }
+}

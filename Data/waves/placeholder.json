@@ -1,0 +1,9 @@
+{
+  "id": "example_wave",
+  "difficulty": 2,
+  "base_payout": 100,
+  "par_seconds": 45,
+  "timeout_frames": 1800,
+  "tags": [],
+  "spawns": [ ]
+}

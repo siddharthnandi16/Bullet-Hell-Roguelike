@@ -1,0 +1,30 @@
+{
+  "enemies": [
+    {
+      "id": "scout_drone",
+      "width": 2,
+      "height": 1,
+      "max_health": 8,
+      "weapons": ["basic_blaster"],
+      "glyph": ["<>"],
+      "color": "enemy",
+      "contact_damage": 1,
+      "bomb_immune": false,
+      "required_to_clear": true,
+      "tags": []
+    },
+    {
+      "id": "gunship",
+      "width": 4,
+      "height": 2,
+      "max_health": 30,
+      "weapons": ["basic_blaster"],
+      "glyph": ["/##\\", "|__|"],
+      "color": "enemy",
+      "contact_damage": 2,
+      "bomb_immune": false,
+      "required_to_clear": true,
+      "tags": ["invuln"]
+    }
+  ]
+}

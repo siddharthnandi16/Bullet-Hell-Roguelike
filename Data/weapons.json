@@ -1,0 +1,17 @@
+{
+  "weapons": [
+    {
+      "id": "basic_blaster",
+      "display_name": "Blaster",
+      "bullet_type": "basic_pellet",
+      "fire_interval_frames": 10,
+      "starting_level": 1,
+      "tags": [],
+      "levels": [
+        { "bullet_count": 1, "angle_deg": 0 },
+        { "bullet_count": 2, "angle_deg": 10 },
+        { "bullet_count": 3, "angle_deg": 15 }
+      ]
+    }
+  ]
+}

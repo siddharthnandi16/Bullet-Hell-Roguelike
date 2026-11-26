@@ -1,0 +1,34 @@
+{
+  "player_weapons": [
+    {"var_name": "No Weapon", "display_name": "Autocannon", "cooldown_frames": 4, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "EMPTY_ID"},
+    {"var_name": "autopistol", "display_name": "Autocannon", "cooldown_frames": 4, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "AUTOPISTOL_ID"},
+    {"var_name": "machinegun", "display_name": "Machine Gun", "cooldown_frames": 3, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "MACHINEGUN_ID"},
+    {"var_name": "laserrifle", "display_name": "Las-Cannon 1000", "cooldown_frames": 15, "number": 1, "angle": 90, "type": "LASER", "modes": "REGULAR", "weapon_id": "LASRIFLE_PLAYER_ID"},
+    {"var_name": "bomblauncher", "display_name": "Shrapnel Bomb", "cooldown_frames": 25, "number": 1, "angle": 90, "type": "BOMB", "modes": "REGULAR", "weapon_id": "BOMB_PLAYER_ID"},
+    {"var_name": "missilelauncher", "display_name": "Homing Missile", "cooldown_frames": 60, "number": 2, "angle": 90, "type": "MISSILE", "modes": "REGULAR", "weapon_id": "MISSILE_PLAYER_ID", "offset_angle": 10},
+    {"var_name": "plasmarifle", "display_name": "Plasma Gun", "cooldown_frames": 4, "number": 1, "angle": 90, "type": "PLASMA", "modes": "REGULAR", "weapon_id": "PLASMARIFLE_PLAYER_ID"},
+    {"var_name": "empbomb", "display_name": "EMP", "cooldown_frames": 300, "number": 1, "angle": 90, "type": "EMP", "modes": "REGULAR", "weapon_id": "EMP_ID"},
+    {"var_name": "lightning", "display_name": "Thunderbolt", "cooldown_frames": 240, "number": 5, "angle": 90, "type": "CHAINLIGHTNING", "modes": "REGULAR", "weapon_id": "LIGHTNING_ID"},
+    {"var_name": "shotgun", "display_name": "Flak Cannon", "cooldown_frames": 8, "number": 5, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "SHOTGUN_ID", "offset_angle": 15},
+    {"var_name": "lasercannon", "display_name": "Las-Cannon 2000", "cooldown_frames": 30, "number": 3, "angle": 90, "type": "LASER", "modes": "REGULAR", "weapon_id": "LASERCANNON_ID", "offset_angle": 15},
+    {"var_name": "plasmacannon", "display_name": "Plasma Howitzer", "cooldown_frames": 18, "number": 5, "angle": 90, "type": "PLASMA", "modes": "REGULAR", "weapon_id": "PLASMACANNON_ID", "offset_angle": 15},
+    {"var_name": "spiral_cannon", "display_name": "Starburst Cannon", "cooldown_frames": 20, "number": 24, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "SPIRAL_CANNON_ID", "offset_angle": 15, "omnidirectional": true},
+    {"var_name": "Minigun", "display_name": "Minigun", "cooldown_frames": 5, "number": 5, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "MINIGUN_ID", "offset_angle": 4, "omnidirectional": false},
+    {"var_name": "Grand_Cannon", "display_name": "Grand Cannon", "cooldown_frames": 50, "number": 5, "angle": 90, "type": "BOMB", "modes": "REGULAR", "weapon_id": "GRAND_CANNON_ID", "offset_angle": 20, "omnidirectional": false},
+    {"var_name": "Plasma_Storm", "display_name": "Storm of Plasma", "cooldown_frames": 12, "number": 7, "angle": 90, "type": "PLASMA", "modes": "REGULAR", "weapon_id": "PLASMA_STORM_ID", "offset_angle": 5, "omnidirectional": false},
+    {"var_name": "missilestorm", "display_name": "Missile Barrage", "cooldown_frames": 120, "number": 5, "angle": 90, "type": "MISSILE", "modes": "REGULAR", "weapon_id": "MISSILE_STORM_ID", "offset_angle": 20}
+  ],
+  "enemy_weapons": [
+    {"var_name": "GRUNT_RIFLE", "display_name": "autocannon", "cooldown_frames": 45, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "GRUNT_WEAPON_ID"},
+    {"var_name": "RAPIDFIRE_RIFLE", "display_name": "autocannon", "cooldown_frames": 15, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "RAPIDFIRE_RIFLE_ID"},
+    {"var_name": "LASER_RIFLE_ENEMY", "display_name": "autocannon", "cooldown_frames": 90, "number": 1, "angle": 90, "type": "LASER", "modes": "REGULAR", "weapon_id": "LASER_RIFLE_ENEMY_ID"},
+    {"var_name": "BOMB_ENEMY_WEAPON", "display_name": "autocannon", "cooldown_frames": 75, "number": 1, "angle": 90, "type": "BOMB", "modes": "REGULAR", "weapon_id": "BOMB_ENEMY_ID"},
+    {"var_name": "HUNTER_RIFLE", "display_name": "autocannon", "cooldown_frames": 10, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "HUNTER_RIFLE_ID"},
+    {"var_name": "JET_CANNON", "display_name": "autocannon", "cooldown_frames": 5, "number": 1, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "JET_CANNON_ID"},
+    {"var_name": "FLYFORT_CANNON", "display_name": "autocannon", "cooldown_frames": 75, "number": 3, "angle": 90, "type": "BOMB", "modes": "REGULAR", "weapon_id": "FLYFORT_CANNON_ID", "offset_angle": 45},
+    {"var_name": "CARRIER_CANNON", "display_name": "autocannon", "cooldown_frames": 150, "number": 3, "angle": 90, "type": "BOMB", "modes": "REGULAR", "weapon_id": "CARRIER_CANNON_ID", "offset_angle": 45},
+    {"var_name": "CARRIER_FLAK", "display_name": "autocannon", "cooldown_frames": 90, "number": 5, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "CARRIER_FLAK_ID", "offset_angle": 15},
+    {"var_name": "FRIGATE_FLAK", "display_name": "autocannon", "cooldown_frames": 50, "number": 24, "angle": 90, "type": "BULLET", "modes": "REGULAR", "weapon_id": "FRIGATE_FLAK_ID", "offset_angle": 15},
+    {"var_name": "FRIGATE_LASER", "display_name": "autocannon", "cooldown_frames": 50, "number": 1, "angle": 90, "type": "LASER", "modes": "REGULAR", "weapon_id": "FRIGATE_LASER_ID"}
+  ]
+}

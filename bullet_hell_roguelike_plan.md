@@ -6,7 +6,7 @@
 
 **Architecture:** Four layers: data (JSON loading), game logic (run, map, stage, wave, boss, currency, cutscenes, save; no raylib calls), rendering (ASCII grid drawn with raylib), and platform (window, borderless mode, scaling, input, audio). Game logic depends only on data and its own classes, so pixel art can replace the rendering layer later.
 
-**Tech Stack:** C++17, CMake, raylib (FetchContent, pinned to the version in the existing CMakeLists.txt), cJSON (already in repo), miniaudio (already in repo), doctest (single-header test framework, vendored into `third_party/`).
+**Tech Stack:** C++17, raylib, custom Makefile, cJSON (already in repo), miniaudio (already in repo), doctest (single-header test framework, vendored into `third_party/`).
 
 **Spec:** `bullet_hell_roguelike_design.md` (the approved design doc). Where this plan and the spec disagree, the spec wins.
 
@@ -120,47 +120,43 @@ Expected: builds without warnings. Running `game` opens a window and closes on E
 git commit -am "build: CMake skeleton with raylib, cJSON, doctest"
 ```
 
-## Task 2: JSON Loader
+Task 2: JSON Loader
 
-**Files:**
-- Create: `src/data/json_loader.h`, `src/data/json_loader.cpp`
-- Test: `tests/test_json_loader.cpp`
+Files:
 
-**Interfaces:**
-- Consumes: none
-- Produces: `JsonDoc load_json(const std::string& path)` throws `DataError` with the file name and reason on failure. `JsonDoc` exposes `int get_int(key)`, `float get_float(key)`, `std::string get_string(key)`, and `bool has(key)`. A missing key or wrong type throws `DataError` naming the key and file.
+Create: src/data/json_loader.h, src/data/json_loader.cpp
+Test: tests/test_json_loader.cpp
 
-- [ ] **Step 1: Write failing tests**
+Interfaces:
 
-Test cases: a valid file loads and returns an int; a missing file throws `DataError` whose message contains the file path; a wrong-type field throws `DataError` whose message contains the key name.
+Consumes: none
+Produces: class JsonDocument owns a parsed cJSON tree, loads a file by path, and frees the tree on destruction. Throws DataError naming the file if the file is missing or the JSON is invalid. JsonDocument::root() returns a JsonNode. class JsonNode is a non-owning view of one node, valid only while its JsonDocument is alive. It provides has(key), child(key), items(), members(), require_only({...}), and typed readers as_int(), as_number(), as_string(), as_bool(), as_raw(), plus get_int, get_number, get_string, get_bool, get_raw, get_array, and get_strings for child(key) shortcuts. Every failure throws DataError with the file name and the key or path. The loader returns copies, never pointers into cJSON memory, so content structs outlive the document.
+[ ] Step 1: Write failing tests
 
-- [ ] **Step 2: Run tests to verify they fail**
+Test cases: a valid file loads and root().get_int("x") returns the stored value; a missing file throws DataError whose message contains the file path; a wrong-type field throws DataError whose message contains the key name. Use small fixtures in tests/fixtures/.
 
-Run: `./build/tests -tc="json*"`
-Expected: FAIL, functions not defined.
+[ ] Step 2: Run tests to verify they fail
 
-- [ ] **Step 3: Implement `load_json` and the typed getters**
+Run: ./tests.exe -tc="json*"
+Expected: FAIL before the fixtures and loader exist.
 
-- [ ] **Step 4: Run tests to verify they pass**
+[ ] Step 3: Implement JsonDocument and JsonNode
+[ ] Step 4: Run tests to verify they pass
 
-Run: `./build/tests -tc="json*"`
+Run: ./tests.exe -tc="json*"
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
-
-```bash
+[ ] Step 5: Commit
+bash
 git commit -am "feat: JSON loader with named errors"
-```
-
 ## Task 3: Tuning Config
 
 **Files:**
-- Create: `src/data/tuning.h`, `src/data/tuning.cpp`
 - Create: `Data/tuning.json`
 - Test: `tests/test_tuning.cpp`
 
 **Interfaces:**
-- Consumes: `load_json`, `JsonDoc` (Task 2)
+- Consumes: JsonDocument, JsonNode (Task 2)
 - Produces: `struct Tuning { int continues; int bombs_start; int bombs_max; float speed_full_seconds; float speed_floor_seconds; float speed_floor; float lives_penalty; float multiplier_min; float multiplier_max; int shop_size; }` and `Tuning load_tuning(const std::string& path)`.
 
 - [ ] **Step 1: Write failing test**
@@ -269,7 +265,7 @@ git commit -am "feat: currency and score ledger"
 - Test: `tests/test_bullets.cpp`
 
 **Interfaces:**
-- Consumes: `load_json`, `JsonDoc` (Task 2)
+- Consumes: JsonDocument, JsonNode (Task 2)
 - Produces: `BulletRegistry load_bullets(path)` and `WeaponRegistry load_weapons(path, const BulletRegistry&)`. Each bullet type has a `color` field and an `owner` field (`Player` or `Enemy`), so the renderer can color bullets by owner. A weapon referencing an unknown bullet name fails with `DataError` naming both the weapon and the bullet.
 
 - [ ] **Step 1: Write failing tests**
@@ -304,7 +300,7 @@ git commit -am "feat: bullet and weapon data loaded from JSON"
 - Test: `tests/test_waves.cpp`
 
 **Interfaces:**
-- Consumes: `load_json`, `BulletRegistry` (Task 6)
+- Consumes: JsonDocument, JsonNode (Task 2), BulletRegistry (Task 6)
 - Produces: `struct Wave { std::string id; int base_payout; int duration_frames; std::vector<WaveSpawn> spawns; }` where `WaveSpawn` holds `start_frame`, `pattern`, `x`, `y`. `struct WavePool` maps wave ids to a weight for each difficulty. `Wave load_wave(path)`, `WavePool load_pool(path)`, and `std::string pick_wave(const WavePool&, Difficulty, Rng&)`.
 
 - [ ] **Step 1: Write failing tests**
@@ -376,7 +372,7 @@ git commit -am "feat: enemies with multiple weapons and frame-based wave runner"
 - Test: `tests/test_boss_fight.cpp`
 
 **Interfaces:**
-- Consumes: `load_json` (Task 2)
+- Consumes: JsonDocument, JsonNode (Task 2)
 - Produces: `struct Boss` also has `std::string theme` (the sci-fi concept, for example "swarm intelligence" or "gravity collapse") and `std::string portrait` (file path, see Task 17). `enum class PhaseKind { Plain, Spell }`, `struct Phase { PhaseKind kind; int timer_frames; float health_threshold; std::vector<std::string> patterns; int capture_bonus; }`, `struct Boss { std::string id; int clear_bonus; std::vector<Phase> phases; }`, and `Boss load_boss(path)`. `class BossFight` tracks the current phase, whether a bomb or life was used during it, and whether the fight has finished.
 
 Rules:
@@ -420,7 +416,7 @@ git commit -am "feat: boss phases, spell cards, and capture bonus"
 - Test: `tests/test_map.cpp`
 
 **Interfaces:**
-- Consumes: `load_json` (Task 2), `load_pool` (Task 7), `load_boss` (Task 9)
+- Consumes: JsonDocument, JsonNode (Task 2), load_pool (Task 7), load_boss (Task 9)
 - Produces: `enum class Difficulty { Easy, Medium, Hard }`, `struct Exit { std::string target_stage; std::string gate; }`, `struct StageDef { std::string id; Difficulty difficulty; std::string background; std::string wave_pool; std::string boss; Exit harder_exit; Exit easier_exit; }`, `class MapGraph` with `const StageDef& stage(id)` and `std::vector<Exit> available_exits(id, const RunStats&)`. `Difficulty step_difficulty(Difficulty, bool harder)` clamps at the ends. `std::string select_ending(Difficulty source)` returns `"secret"`, `"neutral"`, or `"bad"`.
 
 Rules:
@@ -461,7 +457,7 @@ git commit -am "feat: branching map with difficulty gates and endings"
 - Create: `src/gameplay/player.h`, `src/gameplay/player.cpp`
 - Create: `src/run/run.h`, `src/run/run.cpp`
 - Create: `src/content/upgrades.h`, `src/content/upgrades.cpp`
-- Create: `Data/upgrades.json`, `Data/players.json` (port)
+- Create: `Data/upgrades.json`, `Data/ships.json` (port)
 - Test: `tests/test_run.cpp`
 
 **Interfaces:**
@@ -476,7 +472,7 @@ Rules:
 - `buy` fails for an upgrade already in `bought`.
 - Each special's cooldown is independent. Swapping an equipped special does not reset its timer.
 - `roll_shop` never returns an owned upgrade and returns at most `count` distinct items.
-- `Data/players.json` defines two ships: a cannon ship and a missile ship. Each has base speed, a starting weapon (a forward cone weapon for the cannon ship, homing missiles for the missile ship), and a `portrait` path. The loader rejects a ship whose starting weapon does not exist in `weapons.json`.
+- `Data/ships.json` defines two ships: a cannon ship and a missile ship. Each has base speed, a starting weapon (a forward cone weapon for the cannon ship, homing missiles for the missile ship), and a `portrait` path. The loader rejects a ship whose starting weapon does not exist in `weapons.json`.
 
 - [ ] **Step 1: Write failing tests**
 
@@ -514,7 +510,7 @@ git commit -am "feat: run state with continues, bombs, specials, and shop"
 - Test: `tests/test_cutscenes.cpp`
 
 **Interfaces:**
-- Consumes: `load_json` (Task 2)
+- Consumes: JsonDocument, JsonNode (Task 2)
 - Produces: `struct Trigger { enum class Kind { Frame, Event } kind; int frame; std::string event; }`, `struct CutsceneDef { std::string id; Trigger trigger; std::vector<std::string> lines; }`, and `class CutsceneQueue { void on_frame(int frame); void on_event(const std::string& name); bool paused() const; const CutsceneDef* current() const; void advance(); }`.
 
 Rules:
@@ -708,11 +704,11 @@ git commit -am "content: first playable route and checked data set"
 - Create: `Data/palette.json`
 - Create: `assets/portraits/` (hand-drawn portraits, one per ship and per boss)
 - Create: `assets/backgrounds/` (one background per stage theme)
-- Modify: `Data/players.json`, `Data/bosses/*.json` (add `portrait` fields), `Data/stages/*.json` (add `background` fields)
+- Modify: `Data/ships.json`, `Data/bosses/*.json` (add `portrait` fields), `Data/stages/*.json` (add `background` fields)
 - Test: `tests/test_portrait.cpp`
 
 **Interfaces:**
-- Consumes: `load_json` (Task 2), `Boss` (Task 9), `StageDef` (Task 10), the screens from Task 15
+- Consumes: JsonDocument, JsonNode (Task 2), Boss (Task 9), ..., `Boss` (Task 9), `StageDef` (Task 10), the screens from Task 15
 - Produces: `struct Portrait { std::string path; int width; int height; }`, `Portrait load_portrait(path)`, and `void draw_portrait(const Portrait&, Rect)`. `Data/palette.json` provides the palette used in Task 14.
 
 Rules:
@@ -727,7 +723,7 @@ Rules:
 
 - `load_portrait` on a valid file returns non-zero width and height.
 - `load_portrait` on a missing file returns the placeholder and records a warning, without throwing.
-- Every ship in `Data/players.json` and every boss in `Data/bosses/` has a `portrait` field that points to an existing file.
+- Every ship in `Data/ships.json` and every boss in `Data/bosses/` has a `portrait` field that points to an existing file.
 - Every stage's background passes the bullet contrast check from Task 14.
 
 - [ ] **Step 2: Run tests to verify they fail**

@@ -1,0 +1,11 @@
+{
+  "continues": 5,
+  "bombs_start": 3,
+  "bombs_max": 10,
+  "lives_penalty": 0.1,
+  "multiplier_min": 0.6,
+  "multiplier_max": 1.0,
+  "shop_size": 8,
+  "max_bullets": 4096,
+  "speed_floor_ratio": 2.0
+}

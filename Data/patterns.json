@@ -1,0 +1,24 @@
+{
+  "patterns": [
+    {
+      "id": "circle_burst",
+      "origin": { "offset_x": 0, "offset_y": 0 },
+      "aim": "fixed",
+      "aim_angle_deg": 0,
+      "duration_frames": 60,
+      "emission_interval_frames": 60,
+      "repeat": 1,
+      "tags": [],
+      "layers": [
+        {
+          "shape": "circle",
+          "start_delay_frames": 0,
+          "bullet_type": "basic_pellet",
+          "overrides": { "count": 16, "speed": 2.0, "radius": 0 },
+          "origin": { "offset_x": 0, "offset_y": 0 },
+          "aim": "fixed"
+        }
+      ]
+    }
+  ]
+}
