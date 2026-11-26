@@ -66,7 +66,7 @@ Vector2 ToScreen(const Layout& l, float x, float y) {
 }
 
 void DrawPlayfieldFrame(const Layout& l) {
-    DrawRectangleRec(l.play, { 10, 10, 20, 255 });          // playfield background
+    DrawRectangleRec(l.play, { 0, 0, 0, 255 });          // playfield background
     DrawRectangleLinesEx(l.play, 2.0f, { 80, 200, 255, 255 }); // border
 }
 
