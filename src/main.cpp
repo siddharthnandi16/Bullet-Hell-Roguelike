@@ -1,7 +1,11 @@
 // main.cpp
 #include "raylib.h"
-
-enum class Screen { Title, Playing };
+#include "data/content_database.h"
+#include "gameplay/player.h"
+#include "platform/input.h"
+#include "render/player_render.h"
+#define MAX_LIVES_PLAYER 8 //To be replaced by a max lives setting in tuning.json later
+enum class Screen { Title, Playing, Shop, Paused, Map_Screen };
 
 // Button is laid out in screen space, centered on the window.
 Rectangle StartButtonRect(int winW, int winH) {
@@ -75,6 +79,7 @@ void DrawHudFrame(const Layout& l) {
     DrawLine((int)l.hud.x, 0, (int)l.hud.x, (int)l.hud.height,
              { 80, 200, 255, 255 });                         // separator
 }
+
 //Main gameloop, define all functions above it
 int main() {
     InitWindow(858, 721, "Bullet-Hell Roguelike");
@@ -82,21 +87,30 @@ int main() {
     SetTargetFPS(60);
 
     Screen screen = Screen::Title;
-
+    //Initialise data and player object
+  ContentDatabase db = load_content_database("Data");
+  Player player(db.ships.at("fighter_jet"), MAX_LIVES_PLAYER);
+  //Main gameloop
     while (!WindowShouldClose()) {
         int winW = GetScreenWidth();
         int winH = GetScreenHeight();
         Rectangle button = StartButtonRect(winW, winH);
         bool hovered = CheckCollisionPointRec(GetMousePosition(), button);
 
-        // Title input: Enter or click starts the game.
+        // Title screen function calls go here
         if (screen == Screen::Title) {
             bool clicked = hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
             if (IsKeyPressed(KEY_ENTER) || clicked) {
                 screen = Screen::Playing;
             }
         }
-
+    //Game logic function calls go here
+       
+      
+        Direction dir = read_direction();
+        player.move(dir.dx, dir.dy, std::min(GetFrameTime(), 0.05f), dir.moving_diagonally);
+        player.compute_current_speed(player, dir.moving_diagonally);
+    //Drawing function calls go here
         BeginDrawing();
         if (screen == Screen::Title) {
             DrawTitle(winW, winH, button, hovered);
@@ -105,6 +119,7 @@ int main() {
             ClearBackground(BLACK);
             DrawPlayfieldFrame(l);
             DrawHudFrame(l);
+            draw_player(player,winW, winH);
         }
         EndDrawing();
     }
